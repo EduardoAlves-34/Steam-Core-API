@@ -6,6 +6,7 @@ import java.util.UUID;
 public record LibraryResponse(
         UUID id,
         UUID gameId,
+        String gameName,
         LocalDateTime purchaseDate,
         Integer hoursPlayed,
         Boolean installed

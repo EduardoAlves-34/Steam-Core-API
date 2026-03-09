@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/library")
 @RequiredArgsConstructor
@@ -16,5 +18,10 @@ public class LibraryController {
     @GetMapping
     public Page<LibraryResponse> getMyLibrary(Pageable pageable) {
         return libraryService.getMyLibrary(pageable);
+    }
+
+    @PostMapping("/purchase/{gameId}")
+    public void purchase(@PathVariable UUID gameId) {
+        libraryService.purchaseGame(gameId);
     }
 }

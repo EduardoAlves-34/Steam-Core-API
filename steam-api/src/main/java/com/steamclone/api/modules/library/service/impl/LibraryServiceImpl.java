@@ -1,16 +1,22 @@
 package com.steamclone.api.modules.library.service.impl;
 
+import com.steamclone.api.modules.game.entity.Game;
+import com.steamclone.api.modules.game.repository.GameRepository;
 import com.steamclone.api.modules.library.dto.LibraryResponse;
 import com.steamclone.api.modules.library.entity.Library;
 import com.steamclone.api.modules.library.repository.LibraryRepository;
 import com.steamclone.api.modules.library.service.LibraryService;
 import com.steamclone.api.modules.user.entity.User;
 import com.steamclone.api.modules.user.repository.UserRepository;
+import com.steamclone.api.shared.exception.BusinessException;
 import com.steamclone.api.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +24,7 @@ public class LibraryServiceImpl implements LibraryService {
 
     private final LibraryRepository libraryRepository;
     private final UserRepository userRepository;
+    private final GameRepository gameRepository;
 
     @Override
     public Page<LibraryResponse> getMyLibrary(Pageable pageable) {
@@ -35,10 +42,46 @@ public class LibraryServiceImpl implements LibraryService {
 
         return page.map(lib -> new LibraryResponse(
                 lib.getId(),
-                lib.getGameId(),
+                lib.getGame().getId(),
+                lib.getGame().getName(),
                 lib.getPurchaseDate(),
                 lib.getHoursPlayed(),
                 lib.getInstalled()
         ));
+    }
+
+    @Override
+    public void purchaseGame(UUID gameId) {
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Usuário não encontrado"));
+
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Jogo não encontrado"));
+
+        if (!game.getActive()) {
+            throw new BusinessException("Jogo indisponível");
+        }
+
+        if (libraryRepository.existsByUserAndGame(user, game)) {
+            throw new BusinessException("Você já possui esse jogo");
+        }
+
+        Library library = Library.builder()
+                .user(user)
+                .game(game)
+                .purchaseDate(LocalDateTime.now())
+                .hoursPlayed(0)
+                .installed(false)
+                .build();
+
+        libraryRepository.save(library);
     }
 }

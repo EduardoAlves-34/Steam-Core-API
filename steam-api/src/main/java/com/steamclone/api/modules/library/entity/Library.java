@@ -1,5 +1,6 @@
 package com.steamclone.api.modules.library.entity;
 
+import com.steamclone.api.modules.game.entity.Game;
 import com.steamclone.api.modules.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,8 +25,9 @@ public class Library {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "game_id", nullable = false)
-    private UUID gameId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_id", nullable = false)
+    private Game game;
 
     @Column(name = "purchase_date", nullable = false)
     private LocalDateTime purchaseDate;
