@@ -1,5 +1,6 @@
 package com.steamclone.api.modules.game.service;
 
+import com.steamclone.api.modules.game.dto.GameRequest;
 import com.steamclone.api.modules.game.dto.GameResponse;
 import org.springframework.data.domain.*;
 
@@ -13,4 +14,7 @@ public interface GameService {
             BigDecimal maxPrice,
             Pageable pageable
     );
+
+    GameResponse createGame(GameRequest request);
+
 }

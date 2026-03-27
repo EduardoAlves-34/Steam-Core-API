@@ -4,6 +4,7 @@ import com.steamclone.api.shared.response.ErrorResponse;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 
@@ -62,6 +63,18 @@ public class GlobalExceptionHandler {
                         500,
                         "INTERNAL_SERVER_ERROR",
                         "Erro interno inesperado",
+                        LocalDateTime.now()
+                ));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(new ErrorResponse(
+                        ex.getStatusCode().value(),
+                        ex.getStatusCode().toString(),
+                        ex.getReason(),
                         LocalDateTime.now()
                 ));
     }

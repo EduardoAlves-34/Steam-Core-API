@@ -7,6 +7,7 @@ import com.steamclone.api.shared.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,15 +20,18 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse login(AuthRequest request) {
 
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                );
 
-        authenticationManager.authenticate(authentication);
+        var authenticationToken = new UsernamePasswordAuthenticationToken(
+                request.email(),
+                request.password()
+        );
 
-        String token = jwtUtil.generateToken(request.email());
+
+        var authentication = authenticationManager.authenticate(authenticationToken);
+
+        var userDetails = (UserDetails) authentication.getPrincipal();
+
+        String token = jwtUtil.generateToken(userDetails);
 
         return new AuthResponse(token);
     }

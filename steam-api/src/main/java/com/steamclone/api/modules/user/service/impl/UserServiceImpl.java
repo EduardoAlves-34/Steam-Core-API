@@ -29,18 +29,18 @@ public class UserServiceImpl implements UserService {
     public UserResponse register(UserRegisterRequest request) {
 
         if (userRepository.existsByEmail(request.email())) {
-            throw new BusinessException("Email já cadastrado");
+            throw new BusinessException("Email already exists");
         }
 
-        if (userRepository.existsByEmail(request.email())) {
-            throw new BusinessException("Email já cadastrado");
-        }
+        Role role = request.role() != null
+                ? Role.valueOf(request.role().toUpperCase())
+                : Role.USER;
 
         User user = User.builder()
                 .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .role(Role.USER)
+                .role(role)
                 .active(true)
                 .build();
 
@@ -57,7 +57,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuário não encontrado"));
+                        new ResourceNotFoundException("User not found"));
 
         return UserMapper.toResponse(user);
     }
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuário não encontrado"));
+                        new ResourceNotFoundException("User not found"));
 
         user.setUsername(request.username());
 
@@ -84,7 +84,7 @@ public class UserServiceImpl implements UserService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuário não encontrado"));
+                        new ResourceNotFoundException("User not found"));
 
         user.setRole(request.role());
 

@@ -2,10 +2,8 @@ package com.steamclone.api.modules.game.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
-public record GameResponse(
-        UUID id,
+public record GameRequest(
         String name,
         String description,
         BigDecimal price,

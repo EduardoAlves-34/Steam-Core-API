@@ -13,6 +13,8 @@ public interface GameRepository extends JpaRepository<Game, UUID> {
 
     Page<Game> findByGenreAndActiveTrue(String genre, Pageable pageable);
 
+    boolean existsByNameIgnoreCase(String name);
+
     Page<Game> findByPriceBetweenAndActiveTrue(
             BigDecimal min,
             BigDecimal max,
