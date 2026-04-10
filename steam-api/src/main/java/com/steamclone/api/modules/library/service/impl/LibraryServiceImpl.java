@@ -24,10 +24,9 @@ public class LibraryServiceImpl implements LibraryService {
 
     private final LibraryRepository libraryRepository;
     private final UserRepository userRepository;
-    private final GameRepository gameRepository;
 
     @Override
-    public Page<LibraryResponse> getMyLibrary(Pageable pageable) {
+    public Page<LibraryResponse> getMyLibrary(Boolean installed, Pageable pageable) {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -36,9 +35,16 @@ public class LibraryServiceImpl implements LibraryService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuário não encontrado"));
+                        new ResourceNotFoundException("User Not Found"));
 
-        Page<Library> page = libraryRepository.findByUser(user, pageable);
+        Page<Library> page;
+
+        if (installed != null) {
+            page = libraryRepository.findByUserAndInstalled(
+                    user, installed, pageable);
+        } else {
+            page = libraryRepository.findByUser(user, pageable);
+        }
 
         return page.map(lib -> new LibraryResponse(
                 lib.getId(),
@@ -48,40 +54,5 @@ public class LibraryServiceImpl implements LibraryService {
                 lib.getHoursPlayed(),
                 lib.getInstalled()
         ));
-    }
-
-    @Override
-    public void purchaseGame(UUID gameId) {
-
-        String email = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuário não encontrado"));
-
-        Game game = gameRepository.findById(gameId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("Jogo não encontrado"));
-
-        if (!game.getActive()) {
-            throw new BusinessException("Jogo indisponível");
-        }
-
-        if (libraryRepository.existsByUserAndGame(user, game)) {
-            throw new BusinessException("Você já possui esse jogo");
-        }
-
-        Library library = Library.builder()
-                .user(user)
-                .game(game)
-                .purchaseDate(LocalDateTime.now())
-                .hoursPlayed(0)
-                .installed(false)
-                .build();
-
-        libraryRepository.save(library);
     }
 }

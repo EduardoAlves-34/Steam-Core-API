@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(
                         500,
                         "INTERNAL_SERVER_ERROR",
-                        "Erro interno inesperado",
+                        "An unexpected internal error occurred",
                         LocalDateTime.now()
                 ));
     }

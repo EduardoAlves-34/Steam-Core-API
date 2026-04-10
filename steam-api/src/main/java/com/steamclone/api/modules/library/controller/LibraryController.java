@@ -15,13 +15,12 @@ public class LibraryController {
 
     private final LibraryService libraryService;
 
-    @GetMapping
-    public Page<LibraryResponse> getMyLibrary(Pageable pageable) {
-        return libraryService.getMyLibrary(pageable);
+    @GetMapping("/list")
+    public Page<LibraryResponse> getMyLibrary(
+            @RequestParam(required = false) Boolean installed,
+            Pageable pageable
+    ) {
+        return libraryService.getMyLibrary(installed, pageable);
     }
 
-    @PostMapping("/purchase/{gameId}")
-    public void purchase(@PathVariable UUID gameId) {
-        libraryService.purchaseGame(gameId);
-    }
 }

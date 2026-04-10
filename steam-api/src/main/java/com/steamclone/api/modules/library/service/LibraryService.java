@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public interface LibraryService {
 
-    Page<LibraryResponse> getMyLibrary(Pageable pageable);
+    Page<LibraryResponse> getMyLibrary(Boolean installed, Pageable pageable);
 
-    void purchaseGame(UUID gameId);
 }

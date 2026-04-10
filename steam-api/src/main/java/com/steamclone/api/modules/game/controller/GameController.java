@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/api/v1/games")
+@RequestMapping("/api/v1/game")
 @RequiredArgsConstructor
 public class GameController {
 
@@ -25,7 +25,7 @@ public class GameController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/gamelist")
+    @GetMapping("/list")
     public Page<GameResponse> list(
             @RequestParam(required = false) String genre,
             @RequestParam(required = false) BigDecimal minPrice,

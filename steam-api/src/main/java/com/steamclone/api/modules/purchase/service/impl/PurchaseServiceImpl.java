@@ -4,6 +4,7 @@ import com.steamclone.api.modules.game.entity.Game;
 import com.steamclone.api.modules.game.repository.GameRepository;
 import com.steamclone.api.modules.library.entity.Library;
 import com.steamclone.api.modules.library.repository.LibraryRepository;
+import com.steamclone.api.modules.purchase.dto.PurchaseResponse;
 import com.steamclone.api.modules.purchase.entity.Purchase;
 import com.steamclone.api.modules.purchase.enums.PurchaseStatus;
 import com.steamclone.api.modules.purchase.repository.PurchaseRepository;
@@ -12,6 +13,7 @@ import com.steamclone.api.modules.user.entity.User;
 import com.steamclone.api.modules.user.repository.UserRepository;
 import com.steamclone.api.shared.exception.BusinessException;
 import com.steamclone.api.shared.exception.ResourceNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,8 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final LibraryRepository libraryRepository;
 
     @Override
-    public void purchaseGame(UUID gameId) {
+    @Transactional
+    public PurchaseResponse purchaseGame(UUID gameId) {
 
         String email = SecurityContextHolder
                 .getContext()
@@ -38,14 +41,14 @@ public class PurchaseServiceImpl implements PurchaseService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Usuário não encontrado"));
+                        new ResourceNotFoundException("User account not found"));
 
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("Jogo não encontrado"));
+                        new ResourceNotFoundException("Game not found with ID"));
 
         if (libraryRepository.existsByUserAndGame(user, game)) {
-            throw new BusinessException("Você já possui esse jogo");
+            throw new BusinessException("You already own this game");
         }
 
         Purchase purchase = Purchase.builder()
@@ -68,5 +71,11 @@ public class PurchaseServiceImpl implements PurchaseService {
                 .build();
 
         libraryRepository.save(library);
+
+        return new PurchaseResponse(
+                "Purchase completed successfully",
+                purchase.getId(),
+                purchase.getStatus().name()
+        );
     }
 }

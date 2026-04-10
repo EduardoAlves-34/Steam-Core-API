@@ -12,5 +12,7 @@ public interface LibraryRepository extends JpaRepository<Library, UUID> {
 
     Page<Library> findByUser(User user, Pageable pageable);
 
+    Page<Library> findByUserAndInstalled(User user, Boolean installed, Pageable pageable);
+
     boolean existsByUserAndGame(User user, Game game);
 }
