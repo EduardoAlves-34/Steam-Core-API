@@ -12,6 +12,6 @@ public interface UserService {
     UserResponse register(UserRegisterRequest request);
 
     UserResponse getCurrentUser();
-    UserResponse updateProfile(UpdateUserRequest request);
+    UserResponse updateProfile(UUID userID,UpdateUserRequest request);
     UserResponse updateRole(UUID userId, UpdateUserRoleRequest request);
 }

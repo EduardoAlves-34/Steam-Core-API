@@ -4,6 +4,7 @@ import com.steamclone.api.modules.game.entity.Game;
 import com.steamclone.api.modules.game.repository.GameRepository;
 import com.steamclone.api.modules.library.entity.Library;
 import com.steamclone.api.modules.library.repository.LibraryRepository;
+import com.steamclone.api.modules.purchase.dto.PurchaseHistoryResponse;
 import com.steamclone.api.modules.purchase.dto.PurchaseResponse;
 import com.steamclone.api.modules.purchase.entity.Purchase;
 import com.steamclone.api.modules.purchase.enums.PurchaseStatus;
@@ -15,6 +16,8 @@ import com.steamclone.api.shared.exception.BusinessException;
 import com.steamclone.api.shared.exception.ResourceNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -77,5 +80,35 @@ public class PurchaseServiceImpl implements PurchaseService {
                 purchase.getId(),
                 purchase.getStatus().name()
         );
+    }
+    @Override
+    public Page<PurchaseHistoryResponse> getMyPurchaseHistory(PurchaseStatus status, Pageable pageable){
+
+        String email = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("User not Found"));
+
+        Page<Purchase> page;
+
+        if (status != null) {
+            page = purchaseRepository.findByUserAndStatus(
+                    user, status, pageable);
+        } else {
+            page = purchaseRepository.findByUser(user, pageable);
+        }
+
+        return page.map(purchase -> new PurchaseHistoryResponse(
+                purchase.getId(),
+                purchase.getGame().getId(),
+                purchase.getGame().getName(),
+                purchase.getPrice(),
+                purchase.getPurchaseDate(),
+                purchase.getStatus()
+        ));
     }
 }

@@ -8,4 +8,5 @@ public record UpdateUserRequest(
         @NotBlank
         @Size(min = 3, max = 50)
         String username
+
 ) {}

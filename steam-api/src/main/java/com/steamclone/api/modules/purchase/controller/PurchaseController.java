@@ -1,14 +1,15 @@
 package com.steamclone.api.modules.purchase.controller;
 
+import com.steamclone.api.modules.purchase.dto.PurchaseHistoryResponse;
 import com.steamclone.api.modules.purchase.dto.PurchaseResponse;
+import com.steamclone.api.modules.purchase.enums.PurchaseStatus;
 import com.steamclone.api.modules.purchase.service.PurchaseService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -25,4 +26,11 @@ public class PurchaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/history")
+    public Page<PurchaseHistoryResponse> getMyPurchaseHistory(
+            @RequestParam(required = false) PurchaseStatus status,
+            Pageable pageable
+    ) {
+        return purchaseService.getMyPurchaseHistory(status, pageable);
+    }
 }
