@@ -32,8 +32,11 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/games/creategame").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/games/gamelist").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/game/**").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/api/v1/reviews/**").permitAll()
 
                         .anyRequest().authenticated()
                 )
