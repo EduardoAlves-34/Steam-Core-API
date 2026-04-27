@@ -4,8 +4,8 @@ import com.steamclone.api.modules.user.dto.UpdateUserRequest;
 import com.steamclone.api.modules.user.dto.UpdateUserRoleRequest;
 import com.steamclone.api.modules.user.dto.UserRegisterRequest;
 import com.steamclone.api.modules.user.dto.UserResponse;
-import com.steamclone.api.modules.user.entity.Role;
 import com.steamclone.api.modules.user.entity.User;
+import com.steamclone.api.modules.user.enums.Role;
 import com.steamclone.api.modules.user.mapper.UserMapper;
 import com.steamclone.api.modules.user.repository.UserRepository;
 import com.steamclone.api.modules.user.service.UserService;
@@ -21,7 +21,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
-import static com.steamclone.api.modules.user.entity.Role.USER;
+import static com.steamclone.api.modules.user.enums.Role.USER;
+
+
 
 @Service
 @RequiredArgsConstructor
@@ -124,7 +126,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("The user already has the assigned role");
         }
 
-        if (currentUser.getId().equals(targetUser.getId()) && request.role().equals(Role.USER)) {
+        if (currentUser.getId().equals(targetUser.getId()) && request.role().equals(USER)) {
             throw new BadRequestException("You cannot demote yourself.");
         }
 

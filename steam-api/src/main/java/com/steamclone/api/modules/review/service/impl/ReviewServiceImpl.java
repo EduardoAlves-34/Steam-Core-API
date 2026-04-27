@@ -11,14 +11,15 @@ import com.steamclone.api.modules.review.entity.Review;
 import com.steamclone.api.modules.review.repository.ReviewRepository;
 import com.steamclone.api.modules.review.service.ReviewService;
 import com.steamclone.api.modules.user.dto.UserResponse;
-import com.steamclone.api.modules.user.entity.Role;
 import com.steamclone.api.modules.user.entity.User;
+import com.steamclone.api.modules.user.enums.Role;
 import com.steamclone.api.modules.user.repository.UserRepository;
 import com.steamclone.api.modules.user.service.UserService;
 import com.steamclone.api.shared.exception.BusinessException;
 import com.steamclone.api.shared.exception.ForbiddenException;
 import com.steamclone.api.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,6 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final PurchaseRepository purchaseRepository;
     private final UserService userService;
 
+    @CacheEvict(value = "game", allEntries = true)
     @Override
     public ReviewCreatedResponse createReview(UUID gameId, CreateReviewRequest request) {
 

@@ -1,7 +1,6 @@
 package com.steamclone.api.modules.user.controller;
 
 import com.steamclone.api.modules.user.dto.*;
-import com.steamclone.api.modules.user.entity.Role;
 import com.steamclone.api.modules.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

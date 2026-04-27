@@ -1,26 +1,31 @@
 package com.steamclone.api.modules.game.service.impl;
 
+import com.steamclone.api.modules.game.dto.GameRatingProjection;
 import com.steamclone.api.modules.game.dto.GameRequest;
 import com.steamclone.api.modules.game.dto.GameResponse;
 import com.steamclone.api.modules.game.entity.Game;
+import com.steamclone.api.modules.game.enums.RatingLabel;
 import com.steamclone.api.modules.game.repository.GameRepository;
 import com.steamclone.api.modules.game.service.GameService;
+import com.steamclone.api.modules.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public GameResponse createGame(GameRequest request) {
@@ -44,7 +49,10 @@ public class GameServiceImpl implements GameService {
                 saved.getDescription(),
                 saved.getPrice(),
                 saved.getGenre(),
-                saved.getReleaseDate()
+                saved.getReleaseDate(),
+                null,
+                RatingLabel.fromAvg(null),
+                0L
         );
     }
 
@@ -67,13 +75,39 @@ public class GameServiceImpl implements GameService {
             page = gameRepository.findByActiveTrue(pageable);
         }
 
-        return page.map(game -> new GameResponse(
-                game.getId(),
-                game.getName(),
-                game.getDescription(),
-                game.getPrice(),
-                game.getGenre(),
-                game.getReleaseDate()
-        ));
+        List<UUID> gameIds = page.getContent()
+                .stream()
+                .map(Game::getId)
+                .toList();
+
+        List<GameRatingProjection> ratings =
+                reviewRepository.getRatingsForGames(gameIds);
+
+        Map<UUID, GameRatingProjection> ratingMap =
+                ratings.stream()
+                        .collect(Collectors.toMap(
+                                GameRatingProjection::getGameId,
+                                r -> r
+                        ));
+
+        return page.map(game -> {
+
+            GameRatingProjection rating = ratingMap.get(game.getId());
+
+            Double avg = rating != null ? rating.getAverageRating() : null;
+            Long total = rating != null ? rating.getTotalReviews() : 0L;
+
+            return new GameResponse(
+                    game.getId(),
+                    game.getName(),
+                    game.getDescription(),
+                    game.getPrice(),
+                    game.getGenre(),
+                    game.getReleaseDate(),
+                    avg,
+                    RatingLabel.fromAvg(avg),
+                    total
+            );
+        });
     }
 }

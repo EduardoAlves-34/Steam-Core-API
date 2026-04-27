@@ -1,6 +1,6 @@
 package com.steamclone.api.modules.user.dto;
 
-import com.steamclone.api.modules.user.entity.Role;
+import com.steamclone.api.modules.user.enums.Role;
 
 import java.util.UUID;
 

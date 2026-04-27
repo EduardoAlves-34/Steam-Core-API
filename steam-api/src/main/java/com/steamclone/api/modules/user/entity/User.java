@@ -1,5 +1,6 @@
 package com.steamclone.api.modules.user.entity;
 
+import com.steamclone.api.modules.user.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
