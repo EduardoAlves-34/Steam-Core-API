@@ -1,5 +1,7 @@
 package com.steamclone.api.modules.game.service.impl;
 
+import com.steamclone.api.modules.game.cache.GameCacheService;
+import com.steamclone.api.modules.game.dto.GameRatingCache;
 import com.steamclone.api.modules.game.dto.GameRatingProjection;
 import com.steamclone.api.modules.game.dto.GameRequest;
 import com.steamclone.api.modules.game.dto.GameResponse;
@@ -26,6 +28,7 @@ public class GameServiceImpl implements GameService {
 
     private final GameRepository gameRepository;
     private final ReviewRepository reviewRepository;
+    private final GameCacheService gameCacheService;
 
     @Override
     public GameResponse createGame(GameRequest request) {
@@ -63,14 +66,12 @@ public class GameServiceImpl implements GameService {
             BigDecimal maxPrice,
             Pageable pageable
     ) {
-
         Page<Game> page;
 
         if (genre != null) {
             page = gameRepository.findByGenreAndActiveTrue(genre, pageable);
         } else if (minPrice != null && maxPrice != null) {
-            page = gameRepository.findByPriceBetweenAndActiveTrue(
-                    minPrice, maxPrice, pageable);
+            page = gameRepository.findByPriceBetweenAndActiveTrue(minPrice, maxPrice, pageable);
         } else {
             page = gameRepository.findByActiveTrue(pageable);
         }
@@ -80,22 +81,34 @@ public class GameServiceImpl implements GameService {
                 .map(Game::getId)
                 .toList();
 
-        List<GameRatingProjection> ratings =
-                reviewRepository.getRatingsForGames(gameIds);
+        Map<UUID, GameRatingCache> cacheMap = gameCacheService.getCachedRatings(gameIds);
 
-        Map<UUID, GameRatingProjection> ratingMap =
-                ratings.stream()
-                        .collect(Collectors.toMap(
-                                GameRatingProjection::getGameId,
-                                r -> r
-                        ));
+        List<UUID> idsMissingInCache = gameIds.stream()
+                .filter(id -> !cacheMap.containsKey(id))
+                .toList();
+
+        if (!idsMissingInCache.isEmpty()) {
+
+            List<GameRatingProjection> ratingsFromDb = reviewRepository.getRatingsForGames(idsMissingInCache);
+
+            ratingsFromDb.forEach(r -> {
+                GameRatingCache newCache = new GameRatingCache(
+                        r.getAverageRating(),
+                        r.getTotalReviews(),
+                        RatingLabel.fromAvg(r.getAverageRating())
+                );
+                gameCacheService.saveRating(r.getGameId(), newCache);
+                cacheMap.put(r.getGameId(), newCache);
+            });
+        } else {
+        }
 
         return page.map(game -> {
+            GameRatingCache rating = cacheMap.get(game.getId());
 
-            GameRatingProjection rating = ratingMap.get(game.getId());
-
-            Double avg = rating != null ? rating.getAverageRating() : null;
-            Long total = rating != null ? rating.getTotalReviews() : 0L;
+            Double avg = (rating != null) ? rating.ratingAverage() : null;
+            Long total = (rating != null) ? rating.totalReviews() : 0L;
+            String label = (rating != null) ? rating.ratingLabel() : RatingLabel.fromAvg(null);
 
             return new GameResponse(
                     game.getId(),
@@ -105,7 +118,7 @@ public class GameServiceImpl implements GameService {
                     game.getGenre(),
                     game.getReleaseDate(),
                     avg,
-                    RatingLabel.fromAvg(avg),
+                    label,
                     total
             );
         });

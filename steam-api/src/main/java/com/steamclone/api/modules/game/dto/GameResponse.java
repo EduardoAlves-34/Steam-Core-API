@@ -15,6 +15,5 @@ public record GameResponse(
         Double ratingAverage,
         String ratingLabel,
         Long totalReviews
-) implements java.io.Serializable{
-    private static final long serialVersionUID = 1L;
+){
 }
