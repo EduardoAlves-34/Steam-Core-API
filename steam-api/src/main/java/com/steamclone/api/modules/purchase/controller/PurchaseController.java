@@ -14,19 +14,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/purchase")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class PurchaseController {
 
     private final PurchaseService purchaseService;
 
-    @PostMapping("/{gameId}")
+    @PostMapping("/games/{gameId}/purchases")
     public ResponseEntity<PurchaseResponse> purchaseGame(@PathVariable UUID gameId) {
         PurchaseResponse response = purchaseService.purchaseGame(gameId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/history")
+    @GetMapping("/purchases")
     public Page<PurchaseHistoryResponse> getMyPurchaseHistory(
             @RequestParam(required = false) PurchaseStatus status,
             Pageable pageable

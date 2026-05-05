@@ -1,5 +1,6 @@
 package com.steamclone.api.modules.review.service.impl;
 
+import com.steamclone.api.modules.game.cache.GameCacheService;
 import com.steamclone.api.modules.game.entity.Game;
 import com.steamclone.api.modules.game.repository.GameRepository;
 import com.steamclone.api.modules.purchase.repository.PurchaseRepository;
@@ -19,7 +20,6 @@ import com.steamclone.api.shared.exception.BusinessException;
 import com.steamclone.api.shared.exception.ForbiddenException;
 import com.steamclone.api.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -36,8 +36,8 @@ public class ReviewServiceImpl implements ReviewService {
     private final GameRepository gameRepository;
     private final PurchaseRepository purchaseRepository;
     private final UserService userService;
+    private final GameCacheService gameCacheService;
 
-    @CacheEvict(value = "game", allEntries = true)
     @Override
     public ReviewCreatedResponse createReview(UUID gameId, CreateReviewRequest request) {
 
@@ -75,6 +75,7 @@ public class ReviewServiceImpl implements ReviewService {
                 .build();
 
         Review savedReview = reviewRepository.save(review);
+        gameCacheService.evictRating(gameId);
 
         return new ReviewCreatedResponse(
                 savedReview.getGame().getName(),
@@ -126,6 +127,7 @@ public class ReviewServiceImpl implements ReviewService {
         review.setComment(request.comment());
 
         Review savedReview = reviewRepository.save(review);
+        gameCacheService.evictRating(savedReview.getGame().getId());
 
         return new ReviewCreatedResponse(
                 savedReview.getGame().getName(),
@@ -150,6 +152,7 @@ public class ReviewServiceImpl implements ReviewService {
         }
 
         reviewRepository.delete(review);
+        gameCacheService.evictRating(review.getGame().getId());
     }
 
 }

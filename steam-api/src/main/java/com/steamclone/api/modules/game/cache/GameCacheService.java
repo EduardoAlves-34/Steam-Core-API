@@ -5,41 +5,51 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class GameCacheService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private static final String HASH_KEY = "game:ratings";
+    private static final String RATING_KEY_PREFIX = "game:ratings:";
+    private static final Duration RATING_TTL = Duration.ofMinutes(10);
+
+    private final RedisTemplate<String, GameRatingCache> redisTemplate;
 
     public Map<UUID, GameRatingCache> getCachedRatings(List<UUID> ids) {
-        List<Object> fields = ids.stream()
-                .map(UUID::toString)
-                .collect(Collectors.toList());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
 
-        List<Object> values = redisTemplate.opsForHash().multiGet(HASH_KEY, fields);
+        List<String> keys = ids.stream()
+                .map(this::ratingKey)
+                .toList();
+
+        List<GameRatingCache> values = redisTemplate.opsForValue().multiGet(keys);
 
         Map<UUID, GameRatingCache> result = new HashMap<>();
         for (int i = 0; i < ids.size(); i++) {
-            Object val = values.get(i);
+            GameRatingCache val = values.get(i);
             if (val != null) {
-                result.put(ids.get(i), (GameRatingCache) val);
+                result.put(ids.get(i), val);
             }
         }
         return result;
     }
 
     public void saveRating(UUID gameId, GameRatingCache cache) {
-        redisTemplate.opsForHash().put(HASH_KEY, gameId.toString(), cache);
+        redisTemplate.opsForValue().set(ratingKey(gameId), cache, RATING_TTL);
     }
 
     public void evictRating(UUID gameId) {
-        redisTemplate.opsForHash().delete(HASH_KEY, gameId.toString());
+        redisTemplate.delete(ratingKey(gameId));
+    }
+
+    private String ratingKey(UUID gameId) {
+        return RATING_KEY_PREFIX + gameId;
     }
 }

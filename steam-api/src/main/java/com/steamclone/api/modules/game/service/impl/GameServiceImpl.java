@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +67,7 @@ public class GameServiceImpl implements GameService {
     ) {
         Page<Game> page;
 
-        if (genre != null) {
+        if (genre != null && !genre.isBlank()) {
             page = gameRepository.findByGenreAndActiveTrue(genre, pageable);
         } else if (minPrice != null && maxPrice != null) {
             page = gameRepository.findByPriceBetweenAndActiveTrue(minPrice, maxPrice, pageable);
@@ -100,7 +99,6 @@ public class GameServiceImpl implements GameService {
                 gameCacheService.saveRating(r.getGameId(), newCache);
                 cacheMap.put(r.getGameId(), newCache);
             });
-        } else {
         }
 
         return page.map(game -> {

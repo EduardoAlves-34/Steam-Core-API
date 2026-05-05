@@ -13,19 +13,20 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 
 @RestController
-@RequestMapping("/api/v1/game")
+@RequestMapping("/api/v1/games")
 @RequiredArgsConstructor
 public class GameController {
 
     private final GameService gameService;
+
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/creategame")
+    @PostMapping
     public ResponseEntity<GameResponse> createGame(@RequestBody GameRequest request) {
         GameResponse response = gameService.createGame(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public Page<GameResponse> list(
             @RequestParam(required = false) String genre,
             @RequestParam(required = false) BigDecimal minPrice,

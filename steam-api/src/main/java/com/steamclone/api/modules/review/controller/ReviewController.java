@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/reviews")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping("/{gameId}")
+    @PostMapping("/games/{gameId}/reviews")
     public ResponseEntity<ReviewCreatedResponse> createReview(
             @PathVariable UUID gameId,
             @RequestBody @Valid CreateReviewRequest request) {
@@ -30,7 +30,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping("/{gameId}")
+    @GetMapping("/games/{gameId}/reviews")
     public Page<ReviewResponse> getReviews(
             @PathVariable UUID gameId,
             Pageable pageable
@@ -38,7 +38,7 @@ public class ReviewController {
         return reviewService.getGameReviews(gameId, pageable);
     }
 
-    @PatchMapping("/{reviewId}")
+    @PatchMapping("/reviews/{reviewId}")
     public ResponseEntity<ReviewCreatedResponse> updateReview(
             @PathVariable UUID reviewId,
             @RequestBody @Valid UpdateReviewRequest request
@@ -47,7 +47,7 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{reviewId}")
+    @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(@PathVariable UUID reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.noContent().build();

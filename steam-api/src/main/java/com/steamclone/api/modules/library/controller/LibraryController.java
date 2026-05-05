@@ -6,16 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
 @RestController
-@RequestMapping("/api/v1/library")
+@RequestMapping("/api/v1/me/library")
 @RequiredArgsConstructor
 public class LibraryController {
 
     private final LibraryService libraryService;
 
-    @GetMapping("/list")
+    @GetMapping
     public Page<LibraryResponse> getMyLibrary(
             @RequestParam(required = false) Boolean installed,
             Pageable pageable
